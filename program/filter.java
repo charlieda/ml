@@ -11,32 +11,10 @@ public class filter {
             System.out.printf("  (You provided %d argument(s))\n\n", args.length);
             return;
         }
+
         train(args[0]);
         
-        // open message to classify
-
-        File messageFile = new File(args[1]);
-        StringBuilder message = new StringBuilder((int)messageFile.length());
-        Scanner scanner;
-        try {
-            scanner = new Scanner(messageFile);
-        } catch (FileNotFoundException e) {
-            System.err.printf("Error: Couldn't read message file '%s'\nExiting...\n", args[1]);
-            return;
-        }
-        String lineSeparator = System.getProperty("line.separator");
-
-        try {
-            while(scanner.hasNextLine()) {        
-                message.append(scanner.nextLine() + lineSeparator);
-            }
-        } finally {
-            scanner.close();
-        }
-
-        // actually classify the damn thing
-        classify(message.toString());
-        return;
+        classify( readFile(args[1]) );
     }
 
     /**
@@ -54,6 +32,28 @@ public class filter {
     */
     private static void classify(String message) {
         System.out.print("ham\n");
+    }
+
+    private static String readFile(String filename) {
+        File messageFile = new File( filename );
+        StringBuilder message = new StringBuilder((int)messageFile.length());
+        Scanner scanner;
+        try {
+            scanner = new Scanner(messageFile);
+        } catch (FileNotFoundException e) {
+            System.err.printf("Error: Couldn't read message file '%s'\nExiting...\n", filename);
+            return "";
+        }
+        String lineSeparator = System.getProperty("line.separator");
+
+        try {
+            while(scanner.hasNextLine()) {        
+                message.append(scanner.nextLine() + lineSeparator);
+            }
+        } finally {
+            scanner.close();
+        }
+        return message.toString();
     }
 
 }
