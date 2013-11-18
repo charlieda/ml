@@ -1,6 +1,11 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Collections;
 
 public class filter {
 
@@ -12,10 +17,22 @@ public class filter {
             return;
         }
 
+        /* initialise state */
+        numSpam = 0;
+        numHam = 0;
+        wordCountSpam = new HashMap<String, Integer>();
+        wordCountHam  = new HashMap<String, Integer>();
+
         train(args[0]);
         
-        classify( readFile(args[1]) );
+        classify( textToWords( readFile(args[1]) ) );
     }
+
+    private static int numSpam;
+    private static int numHam;
+
+    private static Map<String, Integer> wordCountSpam;
+    private static Map<String, Integer> wordCountHam;
 
     /**
     * Train our classifier
@@ -27,10 +44,10 @@ public class filter {
     }
 
     /**
-    *
+    *   Classifies a set of words representing a document
     * @return "spam\n" if spam, "ham\n" otherwise
     */
-    private static void classify(String message) {
+    private static void classify(Set<String> words) {
         System.out.print("ham\n");
     }
 
@@ -54,6 +71,15 @@ public class filter {
             scanner.close();
         }
         return message.toString();
+    }
+
+    /**
+    * @return a set of words containted in text 
+    */
+    private static Set<String> textToWords(String text) {
+        HashSet<String> toReturn = new HashSet<String>();
+        Collections.addAll(toReturn, text.split(" "));
+        return toReturn;
     }
 
 }
