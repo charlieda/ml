@@ -43,13 +43,22 @@ public class filter {
 
     }
 
+    private static double calculateLikelihoodRatio(Set<String> words) {
+        return 1.5;
+    }
+
     /**
     *   Classifies a set of words representing a document
     * @return "spam\n" if spam, "ham\n" otherwise
     */
     private static void classify(Set<String> words) {
-        System.out.print("ham\n");
+        if(calculateLikelihoodRatio(words) > 1 ) {
+            System.out.print("ham\n");
+        } else {
+            System.out.print("spam\n");
+        }
     }
+
 
     private static String readFile(String filename) {
         File messageFile = new File( filename );
