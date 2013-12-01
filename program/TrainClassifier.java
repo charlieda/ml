@@ -2,9 +2,25 @@ import java.io.*;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.ArrayList;
 
 public class TrainClassifier {
+
+    private static ArrayList<String> stopWords;
+
     public static void main(String[] args) {
+
+        stopWords = new ArrayList<String>();
+        stopWords.add("_");
+        stopWords.add(":");
+        stopWords.add(",");
+        stopWords.add(".");
+        stopWords.add("/");
+        stopWords.add("the");
+        stopWords.add("in");
+        stopWords.add("of");
+        stopWords.add(")");
+        stopWords.add("(");
 
         if(args.length != 1) {
             System.err.println("Usage: java TrainClassifier directory");
@@ -63,24 +79,25 @@ public class TrainClassifier {
             // add up word counts
             for( Map.Entry<String, Integer> entry : getWordCounts( readFile(f.toString()) ).entrySet() ) {
                 String w = entry.getKey();
+                if(!stopWords.contains(w)) {
+                    if(wordCounts.get(w) == null) {
+                        NaiveBayesClassifier.Counts c = new NaiveBayesClassifier.Counts();
+                        wordCounts.put(w, c);
+                    }
 
-                if(wordCounts.get(w) == null) {
-                    NaiveBayesClassifier.Counts c = new NaiveBayesClassifier.Counts();
-                    wordCounts.put(w, c);
+                    NaiveBayesClassifier.Counts count = wordCounts.get(w);
+
+                    if(f.toPath().getName( f.toPath().getNameCount() - 1).toString().contains("spam") ) {
+                        // this sample is a spam message
+                        count.spamCount += entry.getValue();
+                        totalSpamWords += entry.getValue();
+                    } else {
+                        count.hamCount += entry.getValue();
+                        totalHamWords += entry.getValue();
+                    }
+
+                    wordCounts.put(w, count);
                 }
-
-                NaiveBayesClassifier.Counts count = wordCounts.get(w);
-
-                if(f.toPath().getName( f.toPath().getNameCount() - 1).toString().contains("spam") ) {
-                    // this sample is a spam message
-                    count.spamCount += entry.getValue();
-                    totalSpamWords += entry.getValue();
-                } else {
-                    count.hamCount += entry.getValue();
-                    totalHamWords += entry.getValue();
-                }
-
-                wordCounts.put(w, count);
             }
         }
 

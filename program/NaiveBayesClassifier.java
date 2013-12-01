@@ -54,6 +54,9 @@ public class NaiveBayesClassifier implements java.io.Serializable {
     * @return ln( value ^ exp )
     */
     private static double logPow( double value, double exp) {
+        if( exp < 10 ) {
+            return Math.log( Math.pow(value, exp) );
+        }
         double ret = 0;
         for(int i = 0; i < exp; i++) {
             ret += Math.log(value);
