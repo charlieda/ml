@@ -10,6 +10,8 @@ import java.lang.Math;
 
 public class filter {
 
+    public static NaiveBayesClassifier classifier;
+
     public static void main(String[] args) {
         /* usage information */
         if(args.length != 2) {
@@ -19,27 +21,9 @@ public class filter {
         }
 
         train(args[0]);
-
-        // System.err.println(wordCounts);
-        // System.err.println("totalHamWords = " + totalHamWords);
-        // System.err.println("totalSpamWords = " + totalSpamWords);
-        // System.err.println("totalHam = " + numHam);
-        // System.err.println("totalSpam = " + numSpam);
         
         classify( getWordCounts( readFile(args[1]) ) );
     }
-
-    // the number of spam and ham documents
-    private static int numSpam = 0;
-    private static int numHam = 0;
-
-    // total number of words we've seen
-    private static int totalSpamWords = 0;
-    private static int totalHamWords = 0;
-
-    // table of word counts for each word we've seen
-    // the size of this is the size of our vocabulary
-    private static Map<String, Counts> wordCounts = new HashMap<String, Counts>();
 
     /**
     * Train our classifier
@@ -47,6 +31,19 @@ public class filter {
     * @return void
     */
     private static void train(String directory) {
+
+        // the number of spam and ham documents
+        int numSpam = 0;
+        int numHam = 0;
+
+        // total number of words we've seen
+        int totalSpamWords = 0;
+        int totalHamWords = 0;
+
+        // table of word counts for each word we've seen
+        // the size of this is the size of our vocabulary
+        Map<String, NaiveBayesClassifier.Counts> wordCounts = new HashMap<String, NaiveBayesClassifier.Counts>();
+
         File dir = new File( directory );
         if( !dir.isDirectory() ) {
             System.err.println("Error: Supplied directory is not a directory.");
@@ -66,11 +63,11 @@ public class filter {
                 String w = entry.getKey();
 
                 if(wordCounts.get(w) == null) {
-                    Counts c = new filter.Counts();
+                    NaiveBayesClassifier.Counts c = new NaiveBayesClassifier.Counts();
                     wordCounts.put(w, c);
                 }
 
-                Counts count = wordCounts.get(w);
+                NaiveBayesClassifier.Counts count = wordCounts.get(w);
 
                 if(f.toPath().getName( f.toPath().getNameCount() - 1).toString().contains("spam") ) {
                     // this sample is a spam message
@@ -84,34 +81,8 @@ public class filter {
                 wordCounts.put(w, count);
             }
         }
-    }
 
-    private static double calculateLikelihoodRatio(Map<String, Integer> words) {
-
-        // initialise our ratios to the prior distribution
-        double hamLogRatio = Math.log((double)numHam / (numHam + numSpam));
-        double spamLogRatio = Math.log((double)numSpam / (numHam + numSpam));
-
-        // add likelihood ration for each word in our vocab
-        for( Map.Entry<String, Counts> entry : wordCounts.entrySet() ) {
-            String w = entry.getKey();
-            int countInHam = entry.getValue().hamCount;
-            int countInSpam = entry.getValue().spamCount;
-            int vocabSize = wordCounts.size();
-
-            if(words.containsKey(w)) {
-                // System.err.println(w);
-                System.err.println("ln( (" + (countInHam + 1) + " / " + (totalHamWords + vocabSize) + ") ^ " + words.get(w) + ")");
-                // hamLogRatio += Math.log( Math.pow( (countInHam + 1.0) / (totalHamWords + vocabSize), words.get(w) ) );
-                // spamLogRatio += Math.log( Math.pow( (countInSpam + 1.0) / (totalSpamWords + vocabSize), words.get(w) ) );
-                hamLogRatio += logPow( (countInHam + 1.0) / (totalHamWords + vocabSize) , words.get(w));
-                spamLogRatio += logPow((countInSpam + 1.0) / (totalSpamWords + vocabSize), words.get(w));
-
-                System.err.println("Likelihood ratio: " + (hamLogRatio - spamLogRatio) + " after " + w);
-            }
-        }
-        System.err.println("Final Likelihood ratio: " + (hamLogRatio - spamLogRatio) );
-        return hamLogRatio - spamLogRatio;
+        classifier = new NaiveBayesClassifier(numHam, numSpam, totalHamWords, totalSpamWords, wordCounts);
     }
 
     /**
@@ -119,7 +90,7 @@ public class filter {
     * @return "spam\n" if spam, "ham\n" otherwise
     */
     private static void classify(Map<String, Integer> words) {
-        if(calculateLikelihoodRatio(words) > 0 ) {
+        if(classifier.getLikelihoodRatio(words) > 0 ) {
             System.out.print("ham\n");
         } else {
             System.out.print("spam\n");
@@ -163,27 +134,4 @@ public class filter {
         return toReturn;
     }
 
-    /**
-    * @return ln( value ^ exp )
-    */
-    private static double logPow( double value, double exp) {
-        double ret = 0;
-        for(int i = 0; i < exp; i++) {
-            ret += Math.log(value);
-        }
-        return ret;
-    }
-
-    public static class Counts {
-        public int spamCount;
-        public int hamCount;
-        public Counts() {
-            this.spamCount = 0;
-            this.hamCount = 0;
-        }
-
-        public String toString() {
-            return "Spam: " + this.spamCount + " Ham: " + this.hamCount + "\n";
-        }
-    }
 }
