@@ -101,13 +101,16 @@ public class filter {
 
             if(words.containsKey(w)) {
                 // System.err.println(w);
-                // System.err.println("ln( (" + (countInHam + 1) + " / " + (totalHamWords + vocabSize) + ") ^ " + words.get(w) + ")");
-                hamLogRatio += Math.log( Math.pow( (countInHam + 1.0) / (totalHamWords + vocabSize), words.get(w) ) );
-                spamLogRatio += Math.log( Math.pow( (countInSpam + 1.0) / (totalSpamWords + vocabSize), words.get(w) ) );
+                System.err.println("ln( (" + (countInHam + 1) + " / " + (totalHamWords + vocabSize) + ") ^ " + words.get(w) + ")");
+                // hamLogRatio += Math.log( Math.pow( (countInHam + 1.0) / (totalHamWords + vocabSize), words.get(w) ) );
+                // spamLogRatio += Math.log( Math.pow( (countInSpam + 1.0) / (totalSpamWords + vocabSize), words.get(w) ) );
+                hamLogRatio += logPow( (countInHam + 1.0) / (totalHamWords + vocabSize) , words.get(w));
+                spamLogRatio += logPow((countInSpam + 1.0) / (totalSpamWords + vocabSize), words.get(w));
+
+                System.err.println("Likelihood ratio: " + (hamLogRatio - spamLogRatio) + " after " + w);
             }
         }
-
-        //System.err.println(hamLogRatio - spamLogRatio);
+        System.err.println("Final Likelihood ratio: " + (hamLogRatio - spamLogRatio) );
         return hamLogRatio - spamLogRatio;
     }
 
@@ -158,6 +161,17 @@ public class filter {
             toReturn.put(w, toReturn.get(w) + 1);
         }
         return toReturn;
+    }
+
+    /**
+    * @return ln( value ^ exp )
+    */
+    private static double logPow( double value, double exp) {
+        double ret = 0;
+        for(int i = 0; i < exp; i++) {
+            ret += Math.log(value);
+        }
+        return ret;
     }
 
     public static class Counts {
