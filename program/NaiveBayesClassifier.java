@@ -1,7 +1,7 @@
 import java.util.Map;
 import java.lang.Math;
 
-public class NaiveBayesClassifier {
+public class NaiveBayesClassifier implements java.io.Serializable {
 
     // the number of spam and ham documents
     private int numSpam = 0;
@@ -37,13 +37,13 @@ public class NaiveBayesClassifier {
 
             if(words.containsKey(w)) {
                 // System.err.println(w);
-                System.err.println("ln( (" + (countInHam + 1) + " / " + (totalHamWords + vocabSize) + ") ^ " + words.get(w) + ")");
+                //System.err.println("ln( (" + (countInHam + 1) + " / " + (totalHamWords + vocabSize) + ") ^ " + words.get(w) + ")");
                 // hamLogRatio += Math.log( Math.pow( (countInHam + 1.0) / (totalHamWords + vocabSize), words.get(w) ) );
                 // spamLogRatio += Math.log( Math.pow( (countInSpam + 1.0) / (totalSpamWords + vocabSize), words.get(w) ) );
                 hamLogRatio += logPow( (countInHam + 1.0) / (totalHamWords + vocabSize) , words.get(w));
                 spamLogRatio += logPow((countInSpam + 1.0) / (totalSpamWords + vocabSize), words.get(w));
 
-                System.err.println("Likelihood ratio: " + (hamLogRatio - spamLogRatio) + " after " + w);
+                //System.err.println("Likelihood ratio: " + (hamLogRatio - spamLogRatio) + " after " + w);
             }
         }
         System.err.println("Final Likelihood ratio: " + (hamLogRatio - spamLogRatio) );
@@ -61,7 +61,7 @@ public class NaiveBayesClassifier {
         return ret;
     }
 
-    public static class Counts {
+    public static class Counts implements java.io.Serializable {
         public int spamCount;
         public int hamCount;
         public Counts() {
