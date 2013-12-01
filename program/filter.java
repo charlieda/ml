@@ -20,7 +20,11 @@ public class filter {
 
         train(args[0]);
 
-        System.err.println(wordCounts);
+        // System.err.println(wordCounts);
+        // System.err.println("totalHamWords = " + totalHamWords);
+        // System.err.println("totalSpamWords = " + totalSpamWords);
+        // System.err.println("totalHam = " + numHam);
+        // System.err.println("totalSpam = " + numSpam);
         
         classify( getWordCounts( readFile(args[1]) ) );
     }
@@ -50,6 +54,14 @@ public class filter {
         }
 
         for( File f : dir.listFiles() ) {
+            // add to number of documents seen
+            if(f.toPath().getName( f.toPath().getNameCount() - 1).toString().contains("spam") ) {
+                numSpam++;
+            } else {
+                numHam++;
+            }
+
+            // add up word counts
             for( Map.Entry<String, Integer> entry : getWordCounts( readFile(f.toString()) ).entrySet() ) {
                 String w = entry.getKey();
 
@@ -62,11 +74,11 @@ public class filter {
 
                 if(f.toPath().getName( f.toPath().getNameCount() - 1).toString().contains("spam") ) {
                     // this sample is a spam message
-                    numSpam++;
                     count.spamCount += entry.getValue();
+                    totalSpamWords += entry.getValue();
                 } else {
-                    numHam++;
                     count.hamCount += entry.getValue();
+                    totalHamWords += entry.getValue();
                 }
 
                 wordCounts.put(w, count);
@@ -88,13 +100,14 @@ public class filter {
             int vocabSize = wordCounts.size();
 
             if(words.containsKey(w)) {
-                System.err.println(w);
+                // System.err.println(w);
+                // System.err.println("ln( (" + (countInHam + 1) + " / " + (totalHamWords + vocabSize) + ") ^ " + words.get(w) + ")");
                 hamLogRatio += Math.log( Math.pow( (countInHam + 1.0) / (totalHamWords + vocabSize), words.get(w) ) );
-                hamLogRatio += Math.log( Math.pow( (countInSpam + 1.0) / (totalSpamWords + vocabSize), words.get(w) ) );
+                spamLogRatio += Math.log( Math.pow( (countInSpam + 1.0) / (totalSpamWords + vocabSize), words.get(w) ) );
             }
         }
 
-        System.err.println(hamLogRatio - spamLogRatio);
+        //System.err.println(hamLogRatio - spamLogRatio);
         return hamLogRatio - spamLogRatio;
     }
 
@@ -156,7 +169,7 @@ public class filter {
         }
 
         public String toString() {
-            return "Spam: " + this.spamCount + " Ham: " + this.hamCount;
+            return "Spam: " + this.spamCount + " Ham: " + this.hamCount + "\n";
         }
     }
 }
