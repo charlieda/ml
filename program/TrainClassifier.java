@@ -1,8 +1,5 @@
 import java.io.*;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Scanner;
-import java.util.ArrayList;
+import java.util.*;
 
 public class TrainClassifier {
 
@@ -43,20 +40,22 @@ public class TrainClassifier {
 
     }
 
+    // the number of spam and ham documents
+    private static int numSpam = 0;
+    private static int numHam = 0;
+
+    // total number of words we've seen
+    private static int totalSpamWords = 0;
+    private static int totalHamWords = 0;
+
+    private static int vocabSize = 0;
+
     /**
     * Train our classifier
     * @param directory  The directory containing sample data
     * @return void
     */
     private static NaiveBayesClassifier train(String directory) {
-
-        // the number of spam and ham documents
-        int numSpam = 0;
-        int numHam = 0;
-
-        // total number of words we've seen
-        int totalSpamWords = 0;
-        int totalHamWords = 0;
 
         // table of word counts for each word we've seen
         // the size of this is the size of our vocabulary
@@ -69,8 +68,9 @@ public class TrainClassifier {
         }
 
         for( File f : dir.listFiles() ) {
+            boolean isSpam = f.toPath().getName( f.toPath().getNameCount() - 1).toString().contains("spam");
             // add to number of documents seen
-            if(f.toPath().getName( f.toPath().getNameCount() - 1).toString().contains("spam") ) {
+            if( isSpam ) {
                 numSpam++;
             } else {
                 numHam++;
@@ -80,14 +80,16 @@ public class TrainClassifier {
             for( Map.Entry<String, Integer> entry : getWordCounts( readFile(f.toString()) ).entrySet() ) {
                 String w = entry.getKey();
                 if(!stopWords.contains(w)) {
+
                     if(wordCounts.get(w) == null) {
+                        // we haven't seen this word yet.
                         NaiveBayesClassifier.Counts c = new NaiveBayesClassifier.Counts();
                         wordCounts.put(w, c);
                     }
 
                     NaiveBayesClassifier.Counts count = wordCounts.get(w);
 
-                    if(f.toPath().getName( f.toPath().getNameCount() - 1).toString().contains("spam") ) {
+                    if( isSpam ) {
                         // this sample is a spam message
                         count.spamCount += entry.getValue();
                         totalSpamWords += entry.getValue();
@@ -101,7 +103,55 @@ public class TrainClassifier {
             }
         }
 
+        vocabSize = wordCounts.size();
+        //printTopWords( wordCounts );
+
+        // cull words that aren't a good idicator of spam or ham
+        ArrayList<String> toRemove = new ArrayList<String>();
+        double threshold = 0.00001;
+        for( Map.Entry<String, NaiveBayesClassifier.Counts> entry : wordCounts.entrySet() ) {
+            double spamProb = (double)(entry.getValue().spamCount + 1.0) / (double)(totalSpamWords + vocabSize);
+            double hamProb = (double)(entry.getValue().hamCount + 1.0) / (double)(totalHamWords + vocabSize);
+
+            double spamUsefulness = spamProb * (1 - spamProb);
+            double hamUsefulness = hamProb * (1 - hamProb);
+
+            if(spamUsefulness < threshold && hamUsefulness < threshold) {
+                totalSpamWords -= entry.getValue().spamCount;
+                totalHamWords -= entry.getValue().hamCount;
+                toRemove.add(entry.getKey());
+            }
+        }
+        wordCounts.keySet().removeAll(toRemove);
+        System.out.println("Removed " + toRemove.size() + " words of < " + threshold + " usefulness. (" + wordCounts.size() + " left)");
+
         return new NaiveBayesClassifier(numHam, numSpam, totalHamWords, totalSpamWords, wordCounts);
+    }
+
+    /// (count(w) in ham + 1) / (totalHamWords + |V|)
+
+    private static void printTopWords( Map<String, NaiveBayesClassifier.Counts> c) {
+        List<Map.Entry> a = new ArrayList<Map.Entry>(c.entrySet());
+        Collections.sort(a,
+                 new Comparator() {
+                     public int compare(Object o1, Object o2) {
+                         Map.Entry<String, NaiveBayesClassifier.Counts>  e1 = (Map.Entry) o1;
+                         Map.Entry<String, NaiveBayesClassifier.Counts>  e2 = (Map.Entry) o2;
+
+                         double e1SpamProb = (double)(e1.getValue().spamCount + 1.0) / (double)(totalSpamWords + vocabSize);
+                         double e2SpamProb = (double)(e2.getValue().spamCount + 1.0) / (double)(totalSpamWords + vocabSize);
+
+                         double e1Usefulness = e1SpamProb * (1 - e1SpamProb);
+                         double e2Usefulness = e2SpamProb * (1 - e2SpamProb);
+
+                         return ((Comparable) new Double(e1Usefulness)).compareTo(e2Usefulness);
+                     }
+                 });
+
+        for (Map.Entry<String, NaiveBayesClassifier.Counts> e : a) {
+                double prob = (double)(e.getValue().spamCount + 1.0) / (double)(totalSpamWords + vocabSize);
+                System.out.println(String.format("%30s", "'" + e.getKey() + "'") + "\t" + (prob * (1 - prob)) + "\t" + prob);
+        }
     }
 
     private static String readFile(String filename) {
@@ -129,14 +179,16 @@ public class TrainClassifier {
     /**
     * @return a map of word -> counts, based on how many times each word appears in the text
     */
-    private static Map<String, Integer> getWordCounts(String text) {
+    public static Map<String, Integer> getWordCounts(String text) {
         Map<String, Integer> toReturn = new HashMap<String, Integer>();
-        for(String w : text.split(" ")) {
-            w = w.trim();
-            if( !toReturn.containsKey( w ) ) {
-                toReturn.put(w, 0);
+        for(String w : text.split("\\s")) {
+            w = w.trim().replaceAll("[,.;:!]$", "");
+            if(w.length() > 1) {
+                if( !toReturn.containsKey( w ) ) {
+                    toReturn.put(w, 0);
+                }
+                toReturn.put(w, toReturn.get(w) + 1);
             }
-            toReturn.put(w, toReturn.get(w) + 1);
         }
         return toReturn;
     }

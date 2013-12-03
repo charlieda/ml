@@ -6,14 +6,14 @@ echo
 echo "Sample Set"
 
 java TrainClassifier ../automark/sampletrain
-java filter ../automark/sampletest/1.txt
-java filter ../automark/sampletest/2.txt
+time java filter ../automark/sampletest/1.txt
+time java filter ../automark/sampletest/2.txt
 
 echo
 echo "3cool Set"
 java TrainClassifier ../automark/train3cool
-java filter ../automark/test3cool/1.txt
-java filter ../automark/test3cool/2.txt
+time java filter ../automark/test3cool/1.txt
+time java filter ../automark/test3cool/2.txt
 
 echo
 echo "Part 2 Set"

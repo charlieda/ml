@@ -73,7 +73,7 @@ public class NaiveBayesClassifier implements java.io.Serializable {
         }
 
         public String toString() {
-            return "Spam: " + this.spamCount + " Ham: " + this.hamCount + "\n";
+            return "Spam: " + this.spamCount + " Ham: " + this.hamCount;
         }
     }
 }

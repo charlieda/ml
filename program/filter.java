@@ -37,7 +37,7 @@ public class filter {
 
         // classify given file
 
-        if(c.getLikelihoodRatio( getWordCounts( readFile(args[0]) ) ) > 0 ) {
+        if(c.getLikelihoodRatio( TrainClassifier.getWordCounts( readFile(args[0]) ) ) > 0 ) {
             System.out.print("ham\n");
         } else {
             System.out.print("spam\n");
@@ -65,20 +65,4 @@ public class filter {
         }
         return message.toString();
     }
-
-    /**
-    * @return a map of word -> counts, based on how many times each word appears in the text
-    */
-    private static Map<String, Integer> getWordCounts(String text) {
-        Map<String, Integer> toReturn = new HashMap<String, Integer>();
-        for(String w : text.split(" ")) {
-            w = w.trim();
-            if( !toReturn.containsKey( w ) ) {
-                toReturn.put(w, 0);
-            }
-            toReturn.put(w, toReturn.get(w) + 1);
-        }
-        return toReturn;
-    }
-
 }
