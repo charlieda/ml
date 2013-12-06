@@ -36,7 +36,9 @@ public class filter {
         }
 
         // classify given file
+        //Change classifier to expect just an array of words and calculate LRs on the fly
 
+        //Classifier should classify based on 
         if(c.getLikelihoodRatio( getWordCounts( readFile(args[0]) ) ) > 0 ) {
             System.out.print("ham\n");
         } else {
@@ -69,14 +71,11 @@ public class filter {
     /**
     * @return a map of word -> counts, based on how many times each word appears in the text
     */
-    private static Map<String, Integer> getWordCounts(String text) {
-        Map<String, Integer> toReturn = new HashMap<String, Integer>();
+    private static ArrayList<String> getWordCounts(String text) {
+        ArrayList<String> toReturn = new ArrayList<String>();
         for(String w : text.split(" ")) {
             w = w.trim();
-            if( !toReturn.containsKey( w ) ) {
-                toReturn.put(w, 0);
-            }
-            toReturn.put(w, toReturn.get(w) + 1);
+            toReturn.add(w);
         }
         return toReturn;
     }

@@ -1,4 +1,4 @@
-import java.util.Map;
+import java.util.*;
 import java.lang.Math;
 
 public class NaiveBayesClassifier implements java.io.Serializable {
@@ -23,18 +23,38 @@ public class NaiveBayesClassifier implements java.io.Serializable {
         this.wordCounts = wordCounts;
     }
 
-    public double getLikelihoodRatio( Map<String, Integer> words) {
+    //public double getLikelihoodRatio(Map<String, Integer> words) {
+    public double getLikelihoodRatio(ArrayList<String> words){
+
+        //System.out.println(words.get(1)+" "+words.get(2));
         // initialise our ratios to the prior distribution
         double hamLogRatio = Math.log((double)numHam / (numHam + numSpam));
         double spamLogRatio = Math.log((double)numSpam / (numHam + numSpam));
+        // for each word in the received email
+        // update hamLog and spamLog ratios
 
-        // add likelihood ration for each word in our vocab
+        for(int ii = 0; ii < words.size(); ii++) {
+            String w = words.get(ii);
+            if (wordCounts.containsKey(w)){
+                int countInHam = wordCounts.get(w).hamCount;
+                int countInSpam = wordCounts.get(w).spamCount;
+                int vocabSize = wordCounts.size();
+
+                hamLogRatio += Math.log((countInHam + 1.0) / (totalHamWords + vocabSize));
+                spamLogRatio += Math.log((countInSpam + 1.0) / (totalSpamWords + vocabSize));
+
+                //System.out.println("HAM: "+hamLogRatio);
+            }
+        }
+        
+        /*
+        // add likelihood ratio for each word in our vocab
         for( Map.Entry<String, Counts> entry : wordCounts.entrySet() ) {
             String w = entry.getKey();
             int countInHam = entry.getValue().hamCount;
             int countInSpam = entry.getValue().spamCount;
             int vocabSize = wordCounts.size();
-
+ 
             if(words.containsKey(w)) {
                 // System.err.println(w);
                 //System.err.println("ln( (" + (countInHam + 1) + " / " + (totalHamWords + vocabSize) + ") ^ " + words.get(w) + ")");
@@ -46,6 +66,7 @@ public class NaiveBayesClassifier implements java.io.Serializable {
                 //System.err.println("Likelihood ratio: " + (hamLogRatio - spamLogRatio) + " after " + w);
             }
         }
+        */
         System.err.println("Final Likelihood ratio: " + (hamLogRatio - spamLogRatio) );
         return hamLogRatio - spamLogRatio;
     }
