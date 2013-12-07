@@ -36,8 +36,9 @@ public class filter {
         }
 
         // classify given file
-
-        if(c.getLikelihoodRatio( TrainClassifier.getWordCounts( readFile(args[0]) ) ) > 0 ) {
+        //Change classifier to expect just an array of words and calculate LRs on the fly
+        //Classifier should classify based on 
+        if(c.getLikelihoodRatio( getWords( readFile(args[0]) ) ) > 0 ) {
             System.out.print("ham\n");
         } else {
             System.out.print("spam\n");
@@ -64,5 +65,17 @@ public class filter {
             scanner.close();
         }
         return message.toString();
+    }
+
+    /**
+    * @return a list of words in the text
+    */
+    public static ArrayList<String> getWords(String text) {
+        ArrayList<String> toReturn = new ArrayList<String>();
+        for(String w : text.split("<[\\/]?[A-z0-9]*>|[\\s]")) {
+            w = w.trim().replaceAll("[,.;:!]$", "");
+            toReturn.add(w);
+        }
+        return toReturn;
     }
 }

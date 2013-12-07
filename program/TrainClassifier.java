@@ -187,8 +187,7 @@ public class TrainClassifier {
     */
     public static Map<String, Integer> getWordCounts(String text) {
         Map<String, Integer> toReturn = new HashMap<String, Integer>();
-        for(String w : text.split("\\s")) {
-            w = w.trim().replaceAll("[,.;:!]$", "");
+        for(String w : filter.getWords(text)) {
             if(w.length() > 1) {
                 if( !toReturn.containsKey( w ) ) {
                     toReturn.put(w, 0);
