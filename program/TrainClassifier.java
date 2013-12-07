@@ -10,14 +10,12 @@ public class TrainClassifier {
         // based on word list from http://www.ranks.nl/resources/stopwords.html
         stopWords = filter.getWords( readFile("stopwords.txt") );
 
-        if(args.length != 1) {
-            System.err.println("Usage: java TrainClassifier directory");
+        if(args.length < 1) {
+            System.err.println("Usage: java TrainClassifier directory1 directory2 ...");
             return;
         }
 
-        System.out.println("Training classifier based on " + args[0]);
-
-        NaiveBayesClassifier c = train(args[0]);
+        NaiveBayesClassifier c = train(args);
 
         try {
             FileOutputStream fileOut = new FileOutputStream("classifier.ser");
@@ -43,60 +41,62 @@ public class TrainClassifier {
 
     /**
     * Train our classifier
-    * @param directory  The directory containing sample data
+    * @param directories  a list of directories to train on
     * @return void
     */
-    private static NaiveBayesClassifier train(String directory) {
+    private static NaiveBayesClassifier train(String[] directories) {
 
         // table of word counts for each word we've seen
         // the size of this is the size of our vocabulary
         Map<String, NaiveBayesClassifier.Counts> wordCounts = new HashMap<String, NaiveBayesClassifier.Counts>();
 
-        File dir = new File( directory );
-        if( !dir.isDirectory() ) {
-            System.err.println("Error: Supplied directory is not a directory.");
-            return null;
-        }
-
-        for( File f : dir.listFiles() ) {
-            boolean isSpam = f.toPath().getName( f.toPath().getNameCount() - 1).toString().contains("spam");
-            // add to number of documents seen
-            if( isSpam ) {
-                numSpam++;
-            } else {
-                numHam++;
-            }
-
-            // add up word counts
-            for( Map.Entry<String, Integer> entry : getWordCounts( readFile(f.toString()) ).entrySet() ) {
-                String w = entry.getKey();
-                if(!stopWords.contains(w)) {
-
-                    if(wordCounts.get(w) == null) {
-                        // we haven't seen this word yet.
-                        NaiveBayesClassifier.Counts c = new NaiveBayesClassifier.Counts();
-                        wordCounts.put(w, c);
-                    }
-
-                    NaiveBayesClassifier.Counts count = wordCounts.get(w);
-
+        for( String d : directories) {
+            File dir = new File( d );
+            if( dir.isDirectory() ) {
+                //System.err.println("Training on directory " + d);
+                for( File f : dir.listFiles() ) {
+                    boolean isSpam = f.toPath().getName( f.toPath().getNameCount() - 1).toString().contains("spam");
+                    // add to number of documents seen
                     if( isSpam ) {
-                        // this sample is a spam message
-                        count.spamCount += entry.getValue();
-                        totalSpamWords += entry.getValue();
+                        numSpam++;
                     } else {
-                        count.hamCount += entry.getValue();
-                        totalHamWords += entry.getValue();
+                        numHam++;
                     }
 
-                    wordCounts.put(w, count);
+                    // add up word counts
+                    for( Map.Entry<String, Integer> entry : getWordCounts( readFile(f.toString()) ).entrySet() ) {
+                        String w = entry.getKey();
+                        if(!stopWords.contains(w)) {
+
+                            if(wordCounts.get(w) == null) {
+                                // we haven't seen this word yet.
+                                NaiveBayesClassifier.Counts c = new NaiveBayesClassifier.Counts();
+                                wordCounts.put(w, c);
+                            }
+
+                            NaiveBayesClassifier.Counts count = wordCounts.get(w);
+
+                            if( isSpam ) {
+                                // this sample is a spam message
+                                count.spamCount += entry.getValue();
+                                totalSpamWords += entry.getValue();
+                            } else {
+                                count.hamCount += entry.getValue();
+                                totalHamWords += entry.getValue();
+                            }
+
+                            wordCounts.put(w, count);
+                        }
+                    }
                 }
+            } else {
+                System.err.println("Error: " + d + " is not a directory");
             }
         }
 
         vocabSize = wordCounts.size();
         
-        printTopWords( wordCounts );
+        //printTopWords( wordCounts );
 
         // cull words that aren't a good idicator of spam or ham
         ArrayList<String> toRemove = new ArrayList<String>();
@@ -110,7 +110,7 @@ public class TrainClassifier {
             }
         }
         wordCounts.keySet().removeAll(toRemove);
-        System.out.println("Removed " + toRemove.size() + " words of < " + threshold + " usefulness. (" + wordCounts.size() + " left)");
+        //System.out.println("Removed " + toRemove.size() + " words of < " + threshold + " usefulness. (" + wordCounts.size() + " left)");
 
         return new NaiveBayesClassifier(numHam, numSpam, totalHamWords, totalSpamWords, wordCounts);
     }

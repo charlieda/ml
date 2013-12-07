@@ -67,6 +67,18 @@ Machine Learning - Spam Classifier - Report
 Results of 10-fold cross validation
 \end_layout
 
+\begin_layout Standard
+Average: 
+\begin_inset Formula $0.9548$
+\end_inset
+
+, Standard Deviation: 
+\begin_inset Formula $0.008651268371998$
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 Preprocessing Techniques
 \end_layout

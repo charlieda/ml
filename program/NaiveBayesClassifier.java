@@ -67,7 +67,7 @@ public class NaiveBayesClassifier implements java.io.Serializable {
             }
         }
         */
-        System.err.println("Final Likelihood ratio: " + (hamLogRatio - spamLogRatio) );
+        //System.err.println("Final Likelihood ratio: " + (hamLogRatio - spamLogRatio) );
         return hamLogRatio - spamLogRatio;
     }
 
