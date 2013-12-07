@@ -71,6 +71,26 @@ Results of 10-fold cross validation
 Preprocessing Techniques
 \end_layout
 
+\begin_layout Subsection
+Stop Words
+\end_layout
+
+\begin_layout Standard
+Stop words are words that are so common in the language that they provide
+ no information on what class a document belongs to.
+ Examples include 
+\emph on
+and
+\emph default
+, 
+\emph on
+in
+\emph default
+, for.
+ Removing them during the training stage should improve classifier performance.
+ 
+\end_layout
+
 \begin_layout Section
 Analysis of Results
 \end_layout

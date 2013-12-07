@@ -7,17 +7,8 @@ public class TrainClassifier {
 
     public static void main(String[] args) {
 
-        stopWords = new ArrayList<String>();
-        stopWords.add("_");
-        stopWords.add(":");
-        stopWords.add(",");
-        stopWords.add(".");
-        stopWords.add("/");
-        stopWords.add("the");
-        stopWords.add("in");
-        stopWords.add("of");
-        stopWords.add(")");
-        stopWords.add("(");
+        // based on word list from http://www.ranks.nl/resources/stopwords.html
+        stopWords = filter.getWords( readFile("stopwords.txt") );
 
         if(args.length != 1) {
             System.err.println("Usage: java TrainClassifier directory");
@@ -142,7 +133,7 @@ public class TrainClassifier {
                          double e1Usefulness = getPGivenSpam(e1.getValue());
                          double e2Usefulness = getPGivenSpam(e2.getValue());
 
-                         return ((Comparable) new Double(e1Usefulness)).compareTo(e2Usefulness);
+                         return ((Comparable) new Double(e2Usefulness)).compareTo(e1Usefulness);
                      }
                  });
         System.out.println("\n=========================");
@@ -219,7 +210,7 @@ public class TrainClassifier {
     public static Map<String, Integer> getWordCounts(String text) {
         Map<String, Integer> toReturn = new HashMap<String, Integer>();
         for(String w : filter.getWords(text)) {
-            if(w.length() > 1) {
+            if(w.length() > 1 && !stopWords.contains(w)) {
                 if( !toReturn.containsKey( w ) ) {
                     toReturn.put(w, 0);
                 }
