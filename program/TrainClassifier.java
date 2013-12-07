@@ -104,9 +104,8 @@ public class TrainClassifier {
         }
 
         vocabSize = wordCounts.size();
-        if(vocabSize < 20) {
-            printTopWords( wordCounts );
-        }
+        
+        printTopWords( wordCounts );
 
         // cull words that aren't a good idicator of spam or ham
         ArrayList<String> toRemove = new ArrayList<String>();
@@ -132,23 +131,47 @@ public class TrainClassifier {
         System.out.println("totalHamWords  = " + totalHamWords  );
         System.out.println("vocabSize = " + vocabSize);
         List<Map.Entry> a = new ArrayList<Map.Entry>(c.entrySet());
+
+        // sort based on spam prob
         Collections.sort(a,
                  new Comparator() {
                      public int compare(Object o1, Object o2) {
                          Map.Entry<String, NaiveBayesClassifier.Counts>  e1 = (Map.Entry) o1;
                          Map.Entry<String, NaiveBayesClassifier.Counts>  e2 = (Map.Entry) o2;
 
-                         double e1Usefulness = getUsefulness(e1.getValue());
-                         double e2Usefulness = getUsefulness(e2.getValue());
+                         double e1Usefulness = getPGivenSpam(e1.getValue());
+                         double e2Usefulness = getPGivenSpam(e2.getValue());
 
                          return ((Comparable) new Double(e1Usefulness)).compareTo(e2Usefulness);
                      }
                  });
-
-        for (Map.Entry<String, NaiveBayesClassifier.Counts> e : a) {
-                double prob = (double)(e.getValue().spamCount + 1.0) / (double)(totalSpamWords + vocabSize);
-                System.out.println(String.format("%30s", "'" + e.getKey() + "'") + "\t" + getUsefulness(e.getValue()) + "\t" + prob);
+        System.out.println("\n=========================");
+        System.out.println("Top Words Predicting Spam");
+        System.out.println("=========================");
+        for(int i = 0; i < 10 && i < a.size() - 1; i++) {
+            System.out.println(a.get(i).getKey());
         }
+
+        // sort based on ham prob
+        Collections.sort(a,
+                 new Comparator() {
+                     public int compare(Object o1, Object o2) {
+                         Map.Entry<String, NaiveBayesClassifier.Counts>  e1 = (Map.Entry) o1;
+                         Map.Entry<String, NaiveBayesClassifier.Counts>  e2 = (Map.Entry) o2;
+
+                         double e1Usefulness = getPGivenHam(e1.getValue());
+                         double e2Usefulness = getPGivenHam(e2.getValue());
+
+                         return ((Comparable) new Double(e2Usefulness)).compareTo(e1Usefulness);
+                     }
+                 });
+        System.out.println("\n=========================");
+        System.out.println("Top Words Predicting Ham");
+        System.out.println("=========================");
+        for(int i = 0; i < 10; i++) {
+            System.out.println(a.get(i).getKey());
+        }
+
     }
 
     private static String readFile(String filename) {
@@ -180,6 +203,14 @@ public class TrainClassifier {
         double hamProb = (double)(c.hamCount + 1.0) / (double)(totalHamWords + vocabSize);
 
         return (spamProb - hamProb) * (spamProb - hamProb);
+    }
+
+    private static double getPGivenSpam(NaiveBayesClassifier.Counts c) {
+        return (double)(c.spamCount + 1.0) / (double)(totalSpamWords + vocabSize);
+    }
+
+    private static double getPGivenHam(NaiveBayesClassifier.Counts c) {
+        return (double)(c.hamCount + 1.0) / (double)(totalHamWords + vocabSize);
     }
 
     /**
