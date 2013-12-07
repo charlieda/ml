@@ -104,19 +104,16 @@ public class TrainClassifier {
         }
 
         vocabSize = wordCounts.size();
-        //printTopWords( wordCounts );
+        if(vocabSize < 20) {
+            printTopWords( wordCounts );
+        }
 
         // cull words that aren't a good idicator of spam or ham
         ArrayList<String> toRemove = new ArrayList<String>();
-        double threshold = 0.00001;
+        double threshold = 0.00000001;
         for( Map.Entry<String, NaiveBayesClassifier.Counts> entry : wordCounts.entrySet() ) {
-            double spamProb = (double)(entry.getValue().spamCount + 1.0) / (double)(totalSpamWords + vocabSize);
-            double hamProb = (double)(entry.getValue().hamCount + 1.0) / (double)(totalHamWords + vocabSize);
 
-            double spamUsefulness = spamProb * (1 - spamProb);
-            double hamUsefulness = hamProb * (1 - hamProb);
-
-            if(spamUsefulness < threshold && hamUsefulness < threshold) {
+            if(getUsefulness(entry.getValue()) < threshold) {
                 totalSpamWords -= entry.getValue().spamCount;
                 totalHamWords -= entry.getValue().hamCount;
                 toRemove.add(entry.getKey());
@@ -131,6 +128,9 @@ public class TrainClassifier {
     /// (count(w) in ham + 1) / (totalHamWords + |V|)
 
     private static void printTopWords( Map<String, NaiveBayesClassifier.Counts> c) {
+        System.out.println("totalSpamWords = " + totalSpamWords );
+        System.out.println("totalHamWords  = " + totalHamWords  );
+        System.out.println("vocabSize = " + vocabSize);
         List<Map.Entry> a = new ArrayList<Map.Entry>(c.entrySet());
         Collections.sort(a,
                  new Comparator() {
@@ -138,11 +138,8 @@ public class TrainClassifier {
                          Map.Entry<String, NaiveBayesClassifier.Counts>  e1 = (Map.Entry) o1;
                          Map.Entry<String, NaiveBayesClassifier.Counts>  e2 = (Map.Entry) o2;
 
-                         double e1SpamProb = (double)(e1.getValue().spamCount + 1.0) / (double)(totalSpamWords + vocabSize);
-                         double e2SpamProb = (double)(e2.getValue().spamCount + 1.0) / (double)(totalSpamWords + vocabSize);
-
-                         double e1Usefulness = e1SpamProb * (1 - e1SpamProb);
-                         double e2Usefulness = e2SpamProb * (1 - e2SpamProb);
+                         double e1Usefulness = getUsefulness(e1.getValue());
+                         double e2Usefulness = getUsefulness(e2.getValue());
 
                          return ((Comparable) new Double(e1Usefulness)).compareTo(e2Usefulness);
                      }
@@ -150,7 +147,7 @@ public class TrainClassifier {
 
         for (Map.Entry<String, NaiveBayesClassifier.Counts> e : a) {
                 double prob = (double)(e.getValue().spamCount + 1.0) / (double)(totalSpamWords + vocabSize);
-                System.out.println(String.format("%30s", "'" + e.getKey() + "'") + "\t" + (prob * (1 - prob)) + "\t" + prob);
+                System.out.println(String.format("%30s", "'" + e.getKey() + "'") + "\t" + getUsefulness(e.getValue()) + "\t" + prob);
         }
     }
 
@@ -174,6 +171,15 @@ public class TrainClassifier {
             scanner.close();
         }
         return message.toString();
+    }
+
+    // returns how "useful" a particular set of counts it
+    // higher values = more useful
+    private static double getUsefulness(NaiveBayesClassifier.Counts c) {
+        double spamProb = (double)(c.spamCount + 1.0) / (double)(totalSpamWords + vocabSize);
+        double hamProb = (double)(c.hamCount + 1.0) / (double)(totalHamWords + vocabSize);
+
+        return (spamProb - hamProb) * (spamProb - hamProb);
     }
 
     /**

@@ -19,8 +19,20 @@ echo
 echo "Part 2 Set"
 java TrainClassifier ../train
 time java filter ../automark2/sampletest/1.txt
-for i in {1..10}; do
-  time java filter "../train/ham$i.txt"
-  time java filter "../train/spam$i.txt"
+
+TOTAL=20
+SPAM=0
+HAM=0
+for i in {1..20}; do
+  echo $i
+  if [ "$(java filter "../train/ham$i.txt")" = "ham" ] ; then
+    HAM=$((HAM+1))
+  fi
+  if [ $( java filter "../train/spam$i.txt" ) = "spam" ] ; then
+    SPAM=$((SPAM+1))
+  fi
 done
+
+echo "Spam: $SPAM / $TOTAL correct"
+echo " Ham: $HAM / $TOTAL correct"
 
