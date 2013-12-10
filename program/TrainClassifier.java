@@ -96,7 +96,7 @@ public class TrainClassifier {
 
         vocabSize = wordCounts.size();
         
-        //printTopWords( wordCounts );
+        printTopWords( wordCounts );
 
         // cull words that aren't a good idicator of spam or ham
         ArrayList<String> toRemove = new ArrayList<String>();
@@ -139,7 +139,7 @@ public class TrainClassifier {
         System.out.println("\n=========================");
         System.out.println("Top Words Predicting Spam");
         System.out.println("=========================");
-        for(int i = 0; i < 10 && i < a.size() - 1; i++) {
+        for(int i = 0; i < 20 && i < a.size() - 1; i++) {
             System.out.println(a.get(i).getKey());
         }
 
@@ -159,7 +159,7 @@ public class TrainClassifier {
         System.out.println("\n=========================");
         System.out.println("Top Words Predicting Ham");
         System.out.println("=========================");
-        for(int i = 0; i < 10; i++) {
+        for(int i = 0; i < 20; i++) {
             System.out.println(a.get(i).getKey());
         }
 
@@ -197,11 +197,21 @@ public class TrainClassifier {
     }
 
     private static double getPGivenSpam(NaiveBayesClassifier.Counts c) {
-        return (double)(c.spamCount + 1.0) / (double)(totalSpamWords + vocabSize);
+        //return (double)(c.spamCount + 1.0) / (double)(totalSpamWords + vocabSize);
+        double r = (double)(c.spamCount + 1.0) / (double)(numSpam);
+        //(totalSpamWords + vocabSize);
+        r = r / ((double)(c.hamCount + 1.0) / (double)(numHam));
+        //(totalHamWords + vocabSize)));
+        return r;
     }
 
     private static double getPGivenHam(NaiveBayesClassifier.Counts c) {
-        return (double)(c.hamCount + 1.0) / (double)(totalHamWords + vocabSize);
+        // return (double)(c.hamCount + 1.0) / (double)(totalHamWords + vocabSize);
+        double r = (double)(c.hamCount + 1.0) / (double)(numHam);
+        //(totalHamWords + vocabSize);
+        r = r / ((double)(c.spamCount + 1.0) / (double)(numSpam));
+        //(totalSpamWords + vocabSize)));
+        return r;
     }
 
     /**
