@@ -139,7 +139,7 @@ public class TrainClassifier {
         System.out.println("\n=========================");
         System.out.println("Top Words Predicting Spam");
         System.out.println("=========================");
-        for(int i = 0; i < 20 && i < a.size() - 1; i++) {
+        for(int i = 0; i < 50 && i < a.size() - 1; i++) {
             System.out.println(a.get(i).getKey());
         }
 
@@ -159,7 +159,7 @@ public class TrainClassifier {
         System.out.println("\n=========================");
         System.out.println("Top Words Predicting Ham");
         System.out.println("=========================");
-        for(int i = 0; i < 20; i++) {
+        for(int i = 0; i < 50; i++) {
             System.out.println(a.get(i).getKey());
         }
 
